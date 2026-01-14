@@ -1,26 +1,20 @@
 package Abstractas.Negocio;
 import java.util.ArrayList;
-
 public class ClienteEmpresa {
     private String nombre;
     private ArrayList<Proveedor> proveedores = new ArrayList<>();
-
     public ClienteEmpresa(String nombre) {
         this.nombre = nombre;
     }
-
     public String getNombre() {
         return nombre;
     }
-
     public void contratarProveedor(Proveedor p) {
         proveedores.add(p);
     }
-
     public ArrayList<Proveedor> getProveedores() {
         return proveedores;
     }
-
     public boolean tieneProveedorTipo(String tipo) {
         for (Proveedor p : proveedores) {
             if (p.getTipoProveedor().equalsIgnoreCase(tipo)) {
@@ -29,7 +23,6 @@ public class ClienteEmpresa {
         }
         return false;
     }
-
     public void listarContratosActivos() {
         System.out.println("Contratos activos del cliente " + nombre + ":");
         boolean tiene = false;

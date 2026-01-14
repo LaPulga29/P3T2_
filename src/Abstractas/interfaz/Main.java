@@ -1,9 +1,7 @@
 package Abstractas.interfaz;
-
 import Abstractas.Util.Utilitario;
 import Abstractas.Negocio.*;
 import java.util.ArrayList;
-
 public class Main {
     public static void main(String[] args) {
         Utilitario util = new Utilitario();
@@ -15,119 +13,132 @@ public class Main {
             util.menu();
             opc = Integer.parseInt(sc.nextLine());
             switch (opc) {
-                case 1: {
-                    proveedores.add(util.crearProveedor());
-                } break;
-
-                case 2: {
-                    clientes.add(util.crearCliente());
-                } break;
-
-                case 3: { // Asociar proveedor a cliente
-                    if (clientes.isEmpty() || proveedores.isEmpty()) {
-                        System.out.println("Debe haber al menos un cliente y un proveedor registrados.");
-                    } else {
-                        util.listarClientes(clientes);
-                        System.out.print("Seleccione cliente: ");
-                        int ic = sc.nextInt();
-                        sc.nextLine();
-
-                        util.listarProveedores(proveedores);
-                        System.out.print("Seleccione proveedor: ");
-                        int ip = sc.nextInt();
-                        sc.nextLine();
-
-                        if (ic >= 1 && ic <= clientes.size() && ip >= 1 && ip <= proveedores.size()) {
-                            clientes.get(ic - 1).contratarProveedor(proveedores.get(ip - 1));
-                            System.out.println("Proveedor asociado al cliente correctamente.");
-                        } else {
-                            System.out.println("Índice inválido.");
+                case 1:
+                    try {
+                        Proveedor p = util.crearProveedor();
+                        if (p != null) {
+                            proveedores.add(p);
+                            System.out.println("Proveedor creado con éxito");
                         }
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
                     }
-                } break;
+                    break;
 
-                case 4: { // Crear contrato con proveedor asociado a un cliente
+                case 2:
+                    try {
+                        ClienteEmpresa c = util.crearCliente();
+                        clientes.add(c);
+                        System.out.println("Cliente creado con éxito");
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+
+                case 3:
+                    if (proveedores.isEmpty() || clientes.isEmpty()) {
+                        System.out.println("Error: Debe haber al menos un proveedor y un cliente registrados");
+                        break;
+                    }
+
+                    try {
+                        System.out.println("\n--- Asociar proveedor a cliente ---");
+
+                        // Seleccionar cliente
+                        System.out.println("Seleccione el cliente:");
+                        int idxCliente = util.seleccionarCliente(clientes);
+                        ClienteEmpresa cliente = clientes.get(idxCliente);
+
+                        // Seleccionar proveedor (todos los disponibles)
+                        System.out.println("Seleccione el proveedor a asociar:");
+                        int idxProveedor = util.seleccionarProveedor(proveedores);
+                        Proveedor proveedor = proveedores.get(idxProveedor);
+
+                        // Verificar si ya están asociados
+                        if (cliente.getProveedores().contains(proveedor)) {
+                            System.out.println("Error: Este proveedor ya está asociado a este cliente");
+                        } else {
+                            cliente.contratarProveedor(proveedor);
+                            System.out.println("Proveedor asociado al cliente con éxito");
+                        }
+                    } catch (IllegalStateException e) {
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Error inesperado: " + e.getMessage());
+                    }
+                    break;
+
+                case 4:
+                    // Validar que haya clientes
                     if (clientes.isEmpty()) {
-                        System.out.println("No hay clientes registrados.");
-                    } else {
-                        util.listarClientes(clientes);
-                        System.out.print("Seleccione cliente: ");
-                        int ic = sc.nextInt();
-                        sc.nextLine();
-
-                        if (ic >= 1 && ic <= clientes.size()) {
-                            ClienteEmpresa cliente = clientes.get(ic - 1);
-
-                            if (cliente.getProveedores().isEmpty()) {
-                                System.out.println("El cliente seleccionado no tiene proveedores asociados. Use la opción 3 primero.");
-                            } else {
-                                // Mostrar solo los proveedores asociados a ese cliente
-                                System.out.println("\n--- Proveedores asociados al cliente " + cliente.getNombre() + " ---");
-                                ArrayList<Proveedor> asociados = cliente.getProveedores();
-                                for (int i = 0; i < asociados.size(); i++) {
-                                    System.out.println((i+1) + ". " + asociados.get(i).getNombre() + " (" + asociados.get(i).getTipoProveedor() + ")");
-                                }
-
-                                System.out.print("Seleccione proveedor asociado: ");
-                                int ip = sc.nextInt();
-                                sc.nextLine();
-
-                                if (ip >= 1 && ip <= asociados.size()) {
-                                    Proveedor proveedor = asociados.get(ip - 1);
-                                    util.crearContrato(proveedor, cliente); // contrato entre cliente y proveedor asociado
-                                } else {
-                                    System.out.println("Índice inválido.");
-                                }
-                            }
-                        } else {
-                            System.out.println("Índice inválido.");
-                        }
+                        System.out.println("Error: No hay clientes registrados");
+                        break;
                     }
-                } break;
 
+                    try {
+                        // 1. Seleccionar cliente
+                        System.out.println("\n--- Seleccionar cliente ---");
+                        int idxCliente = util.seleccionarCliente(clientes);
+                        ClienteEmpresa clienteSeleccionado = clientes.get(idxCliente);
 
+                        // 2. Verificar que el cliente tenga proveedores
+                        if (clienteSeleccionado.getProveedores().isEmpty()) {
+                            System.out.println("Error: Este cliente no tiene proveedores asociados. " +
+                                    "Primero debe asociar un proveedor (opción 3)");
+                            break;
+                        }
 
-                case 5: {
+                        // 3. Seleccionar proveedor (solo los de este cliente)
+                        int idxProveedorEnCliente = util.seleccionarProveedorCliente(clienteSeleccionado);
+                        Proveedor proveedorSeleccionado = clienteSeleccionado.getProveedores().get(idxProveedorEnCliente);
+
+                        // 4. Crear contrato
+                        util.crearContrato(proveedorSeleccionado, clienteSeleccionado);
+
+                    } catch (IllegalStateException e) {
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Error inesperado: " + e.getMessage());
+                        e.printStackTrace(); // Para depuración
+                    }
+                    break;
+
+                case 5:
                     if (clientes.isEmpty()) {
-                        System.out.println("No hay clientes registrados.");
-                    } else {
-                        util.listarClientes(clientes);
-                        System.out.print("Seleccione cliente: ");
-                        int ic2 = sc.nextInt();
-                        sc.nextLine();
-                        if (ic2 >= 1 && ic2 <= clientes.size()) {
-                            System.out.print("Tipo a buscar: ");
-                            String tipo = sc.nextLine();
-                            if (clientes.get(ic2 - 1).tieneProveedorTipo(tipo)) {
-                                System.out.println("El cliente tiene contratado un proveedor de tipo: " + tipo);
-                            } else {
-                                System.out.println("El cliente NO tiene contratado un proveedor de tipo: " + tipo);
-                            }
-                        } else {
-                            System.out.println("Índice inválido.");
-                        }
+                        System.out.println("Error: No hay clientes registrados");
+                        break;
                     }
-                } break;
 
-                case 6: {
+                    try {
+                        int idxCliente = util.seleccionarCliente(clientes);
+                        System.out.print("Tipo de proveedor a verificar: ");
+                        String tipo = sc.nextLine();
+
+                        boolean tiene = clientes.get(idxCliente).tieneProveedorTipo(tipo);
+                        System.out.println(tiene ? "El cliente tiene ese tipo de proveedor" :
+                                "El cliente NO tiene ese tipo de proveedor");
+                    } catch (IllegalStateException e) {
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Error inesperado: " + e.getMessage());
+                    }
+                    break;
+
+                case 6:
                     if (clientes.isEmpty()) {
-                        System.out.println("No hay clientes registrados.");
-                    } else {
-                        util.listarClientes(clientes);
-                        System.out.print("Seleccione cliente: ");
-                        int ic3 = sc.nextInt();
-                        sc.nextLine();
-                        if (ic3 >= 1 && ic3 <= clientes.size()) {
-                            clientes.get(ic3 - 1).listarContratosActivos();
-                        } else {
-                            System.out.println("Índice inválido.");
-                        }
+                        System.out.println("Error: No hay clientes registrados");
+                        break;
                     }
-                } break;
 
-                case 7: {
-                    System.out.println("Gracias por usar el programa");
-                } break;
+                    try {
+                        int idxCliente = util.seleccionarCliente(clientes);
+                        clientes.get(idxCliente).listarContratosActivos();
+                    } catch (IllegalStateException e) {
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Error inesperado: " + e.getMessage());
+                    }
+                    break;
 
                 default:
                     System.out.println("Opción no válida");
